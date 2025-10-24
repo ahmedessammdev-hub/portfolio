@@ -1,25 +1,18 @@
 import { NextResponse } from 'next/server';
-import { verifyAdminToken } from '@/lib/auth';
 
 export function middleware(request) {
   const { pathname } = request.nextUrl;
 
-  // Allow access to login page
-  if (pathname === '/admin/login') {
-    // If already logged in, redirect to dashboard
-    const admin = verifyAdminToken(request);
-    if (admin) {
-      return NextResponse.redirect(new URL('/admin/dashboard', request.url));
-    }
-    return NextResponse.next();
-  }
-
-  // Protect all /admin routes except login
-  if (pathname.startsWith('/admin')) {
-    const admin = verifyAdminToken(request);
+  // Only handle /admin routes (except login and api)
+  if (pathname.startsWith('/admin') && 
+      !pathname.startsWith('/admin/login') && 
+      !pathname.startsWith('/api/')) {
     
-    if (!admin) {
-      // Redirect to login if not authenticated
+    // Check if token exists in cookies
+    const token = request.cookies.get('admin-token');
+    
+    if (!token) {
+      // Redirect to login if no token
       const loginUrl = new URL('/admin/login', request.url);
       loginUrl.searchParams.set('redirect', pathname);
       return NextResponse.redirect(loginUrl);
