@@ -1,0 +1,218 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Admin users table
+model Admin {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  email     String   @unique
+  password  String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("admins")
+}
+
+// Hero section
+model Hero {
+  id       Int     @id @default(autoincrement())
+  name     String
+  bio      String
+  linkedIn String?
+  github   String?
+  cvLink   String?
+  heroImg  String?
+  isActive Boolean @default(true)
+
+  @@map("hero")
+}
+
+// About section
+model About {
+  id          Int     @id @default(autoincrement())
+  title       String
+  bio         String
+  description String
+  profileImg  String?
+  contactLink String?
+  resumeLink  String?
+  ctaText     String?
+  resumeText  String?
+  isActive    Boolean @default(true)
+
+  @@map("about")
+}
+
+// Experience entries
+model Experience {
+  id           Int                    @id @default(autoincrement())
+  position     String
+  company      String
+  duration     String
+  location     String
+  description  String
+  technologies ExperienceTechnology[]
+  isActive     Boolean                @default(true)
+  order        Int                    @default(0)
+  createdAt    DateTime               @default(now())
+  updatedAt    DateTime               @updatedAt
+
+  @@map("experiences")
+}
+
+model ExperienceTechnology {
+  id           Int        @id @default(autoincrement())
+  name         String
+  experienceId Int
+  experience   Experience @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+
+  @@map("experience_technologies")
+}
+
+// Projects
+model Project {
+  id           Int                 @id @default(autoincrement())
+  title        String
+  description  String
+  image        String?
+  liveLink     String?
+  githubLink   String?
+  featured     Boolean             @default(false)
+  technologies ProjectTechnology[]
+  isActive     Boolean             @default(true)
+  order        Int                 @default(0)
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  @@map("projects")
+}
+
+model ProjectTechnology {
+  id        Int     @id @default(autoincrement())
+  name      String
+  projectId Int
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("project_technologies")
+}
+
+// Skills categories and skills
+model SkillCategory {
+  id          Int     @id @default(autoincrement())
+  category    String
+  icon        String?
+  skills      Skill[]
+  isActive    Boolean @default(true)
+  order       Int     @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("skill_categories")
+}
+
+model Skill {
+  id             Int           @id @default(autoincrement())
+  name           String
+  level          Int
+  skillCategoryId Int
+  skillCategory  SkillCategory @relation(fields: [skillCategoryId], references: [id], onDelete: Cascade)
+  isActive       Boolean       @default(true)
+  order          Int           @default(0)
+
+  @@map("skills")
+}
+
+// Education entries
+model Education {
+  id           Int                     @id @default(autoincrement())
+  degree       String
+  institution  String
+  duration     String
+  location     String
+  description  String
+  gpa          String?
+  type         String // degree, bootcamp, certification
+  achievements EducationAchievement[]
+  isActive     Boolean                 @default(true)
+  order        Int                     @default(0)
+  createdAt    DateTime                @default(now())
+  updatedAt    DateTime                @updatedAt
+
+  @@map("education")
+}
+
+model EducationAchievement {
+  id          Int       @id @default(autoincrement())
+  achievement String
+  educationId Int
+  education   Education @relation(fields: [educationId], references: [id], onDelete: Cascade)
+
+  @@map("education_achievements")
+}
+
+// Online courses
+model OnlineCourse {
+  id        Int      @id @default(autoincrement())
+  name      String
+  platform  String?
+  isActive  Boolean  @default(true)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("online_courses")
+}
+
+// Contact information
+model ContactInfo {
+  id          Int     @id @default(autoincrement())
+  title       String
+  subtitle    String
+  email       String
+  phone       String?
+  location    String?
+  github      String?
+  linkedin    String?
+  twitter     String?
+  isActive    Boolean @default(true)
+
+  @@map("contact_info")
+}
+
+// Contact methods
+model ContactMethod {
+  id          Int     @id @default(autoincrement())
+  icon        String
+  title       String
+  description String
+  value       String
+  link        String
+  isActive    Boolean @default(true)
+  order       Int     @default(0)
+
+  @@map("contact_methods")
+}
+
+// Contact form submissions
+model ContactSubmission {
+  id          Int      @id @default(autoincrement())
+  name        String
+  email       String
+  subject     String
+  message     String
+  projectType String?
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@map("contact_submissions")
+}
