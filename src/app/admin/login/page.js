@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Manrope } from 'next/font/google';
 
@@ -8,7 +8,7 @@ const manrope = Manrope({
   weight: ["400", "500", "600"],
 });
 
-export default function AdminLogin() {
+function LoginForm() {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
