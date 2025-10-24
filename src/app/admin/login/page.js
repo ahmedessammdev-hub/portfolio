@@ -1,6 +1,6 @@
 "use client";
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Manrope } from 'next/font/google';
 
 const manrope = Manrope({
@@ -16,6 +16,8 @@ export default function AdminLogin() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get('redirect') || '/admin/dashboard';
 
   const handleChange = (e) => {
     setFormData({
@@ -24,6 +26,13 @@ export default function AdminLogin() {
     });
     setError('');
   };
+
+  // Show message if redirected from protected page
+  useEffect(() => {
+    if (searchParams.get('redirect')) {
+      setError('Please login to access this page');
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -42,7 +51,9 @@ export default function AdminLogin() {
       const data = await response.json();
 
       if (response.ok) {
-        router.push('/admin/dashboard');
+        // Redirect to the requested page or dashboard
+        router.push(redirectTo);
+        router.refresh(); // Force refresh to update auth state
       } else {
         setError(data.error || 'Login failed');
       }
