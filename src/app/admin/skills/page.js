@@ -501,7 +501,7 @@ export default function AdminSkills() {
 
                 {(!cat.skills || cat.skills.length === 0) && (
                   <p className="text-[#C7C7C7] text-center py-4">
-                    No skills yet. Click "Add Skill" to add one.
+                    No skills yet. Click &quot;Add Skill&quot; to add one.
                   </p>
                 )}
               </div>
