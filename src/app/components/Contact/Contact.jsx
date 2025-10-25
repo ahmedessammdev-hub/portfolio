@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Bebas_Neue, Manrope } from "next/font/google";
 import Github from "../icons/Github";
 import Linkedin from "../icons/Linkedin";
+import emailjs from '@emailjs/browser';
 
 const manrope = Manrope({
   subsets: ["latin"],
@@ -66,17 +67,63 @@ export default function Contact() {
     setSubmitStatus("");
 
     try {
-      const response = await fetch('/api/contact', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
+      const promises = [
+        // 1. Send to your API
+        fetch('/api/contact', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData),
+        }),
+        // 2. Send to Getform.io
+        fetch('https://getform.io/f/agdjwweb', {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+          },
+          body: new FormData(e.target),
+        })
+      ];
 
-      if (!response.ok) {
-        throw new Error('Failed to send message');
+      // 3. Send via EmailJS (only if PUBLIC_KEY is configured)
+      const emailjsPublicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
+      if (emailjsPublicKey && emailjsPublicKey !== 'your_public_key') {
+        promises.push(
+          emailjs.send(
+            process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID || 'service_g0otpll',
+            process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID || 'template_ll03goz',
+            {
+              title: formData.subject,
+              name: formData.name,
+              email: formData.email,
+              message: formData.message.replace(/\n/g, '<br>'),
+              project_type: formData.projectType || 'Not specified',
+            },
+            emailjsPublicKey
+          )
+        );
       }
+
+      // Send to all services in parallel
+      const results = await Promise.allSettled(promises);
+
+      // Check if at least one service succeeded
+      const hasSuccess = results.some(result => result.status === 'fulfilled');
+      
+      if (!hasSuccess) {
+        throw new Error('Failed to send message to all services');
+      }
+      
+      // Log any failures for debugging
+      results.forEach((result, index) => {
+        const serviceName = index === 0 ? 'API' : index === 1 ? 'Getform' : 'EmailJS';
+        if (result.status === 'rejected') {
+          console.error(`${serviceName} failed:`, result.reason);
+        } else {
+          console.log(`${serviceName} succeeded`);
+        }
+      });
       
       setSubmitStatus("success");
       setFormData({
